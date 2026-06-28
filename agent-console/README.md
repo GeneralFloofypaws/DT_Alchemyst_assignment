@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agent Console
 
-## Getting Started
+This project is my submission for the Alchemyst Full Stack AI internship assignment.
 
-First, run the development server:
+I built the client around the idea that the network is unreliable by default. Instead of rendering packets immediately, every incoming packet first goes through a small sequencing buffer that handles duplicates and out-of-order delivery before anything reaches the UI. The UI itself is driven almost entirely from streamed events so the timeline, tool panel and context inspector all stay in sync with what the agent is actually doing.
 
-```bash
+1. Start the mock agent server
+cd agent-server
+npm install
+npm run build
+npm start
+
+or
+
+npm start -- --mode chaos
+
+to enable chaos mode.
+
+The server listens on:
+
+ws://localhost:4747/ws
+
+2. Start the client
+npm install
+npm run build
+npm run start
+
+or during development
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+Open
+
+http://localhost:3000
+
+
+
+## Connection State Machine
+
+```mermaid
+stateDiagram-v2
+
+[*] --> Connecting
+
+Connecting --> Connected : WebSocket opens
+
+Connected --> Streaming : USER_MESSAGE
+
+Streaming --> ToolPending : TOOL_CALL
+ToolPending --> Streaming : TOOL_RESULT
+
+Streaming --> Complete : STREAM_END
+
+Connected --> Reconnecting : socket closes
+Streaming --> Reconnecting : socket closes
+ToolPending --> Reconnecting : socket closes
+
+Reconnecting --> Resuming : reconnect succeeds
+Resuming --> Streaming : RESUME(last_seq)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Resuming --> Connected : nothing left to replay
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Complete --> Connected
