@@ -1,3 +1,4 @@
+#MY DOCUMENTATION ... DECISIONS.md and README are inside agent-console
 # Full Stack AI Engineer Assignment
 
 ## Overview
