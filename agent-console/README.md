@@ -57,9 +57,8 @@ ToolPending --> Reconnecting : socket closes
 
 Reconnecting --> Resuming : reconnect succeeds
 Resuming --> Streaming : RESUME(last_seq)
-```
-
-
 Resuming --> Connected : nothing left to replay
+
+```
 
 Complete --> Connected
